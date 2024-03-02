@@ -10,7 +10,7 @@
     />
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
   </head>
-  <script>
+  <!-- <script>
     $(document).ready(function () {
       $("#add-box").hide();
 
@@ -24,19 +24,80 @@
           alert("Merci de remplir les champs vides");
         } else {
           let elem = $(
-        `<li><div id="box-todo"><div class="completed" id="title">${input}</div><div id="completed-box"></div></div></li>`
+        `<li>
+            <div id="box-todo">
+              <div class="completed" id="title">${input}</div>
+              <div id="completed-box"></div>
+            </div>
+          </li>`
           );
          $("#todoList").append(elem);
          $(".input").val("");
         }
 
         $("#todoList").on("click","#completed-box", function () {
-         /* $(this).closest("li").remove(); */
-         $(this).closest("li").css("color","green");
+         $(this).closest("li").remove();
+         //$(this).closest("li").css("color","green");
       });
     });
 });
+  </script> -->
+
+  <script>
+
+    let todos = [];
+
+    $(document).ready(function () {
+      $("#add-box").hide();
+
+      $("#toggleAdd").on("click", function () {
+        $("#add-box").slideToggle();
+      });
+
+      $("form").on("submit", function (e) {
+        e.preventDefault();
+        const input = $(".input").val();
+        if (input == "") {
+          alert("Merci de remplir les champs vides");
+        } else {
+          let newTodo = {name:input, id: randomId()}
+          // Spread operator
+          todos = [...todos, newTodo];
+          console.log(todos);
+          populateTodos();
+         $(".input").val("");
+        }
+    });
+
+    function randomId(){
+      return Date.now();
+    }
+
+    function populateTodos(){
+      $("#todoList").empty();
+      todos.forEach(function(todo){
+        let elem = $(
+        `<li data-id="${todo.id}">
+            <div id="box-todo">
+              <div class="completed" id="title">${todo.name}</div>
+              <div id="completed-box"></div>
+            </div>
+          </li>`
+          );
+         $("#todoList").append(elem);
+      });
+    }
+
+    $("#todoList").on("click","#completed-box", function () {
+          let todoId = $(this).closest("li").data("id");
+          console.log(todoId);
+          todos = todos.filter((todo)=> todo.id != todoId);
+         $(this).closest("li").remove();
+      });
+
+  });
   </script>
+
   <style>
     body {
       background: #3395cb;
@@ -45,10 +106,9 @@
       list-style-type: none;
       width: 100%;
     }
-    li #title {
+    li title {
       font-family: "Poppins";
       font-size: 15px;
-      color: rgb(184, 184, 184);
     }
     #box-todo {
       width: 100%;
@@ -160,10 +220,10 @@
         <div id="subtitle">24 février</div>
         <ul id="todoList"></ul>
         <div id="toggleAdd">+</div>
-        <div id="add-box">
+        <form id="add-box">
           <input class="input" type="text" />
-          <div class="button">Ajouter</div>
-        </div>
+          <button class="button" type="submit">Ajouter</button>
+        </form>
       </div>
     </div>
   </body>
