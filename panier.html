@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+  </head>
+  <style>
+    #cart-container {
+      width: 0;
+      height: 100%;
+      border: 1px solid gray;
+      position: absolute;
+      right: 0;
+      top: 0;
+    }
+  </style>
+
+  <script>
+    const products = [
+      {
+        id: 1,
+        name: "Banane",
+        price: 1000,
+        stock: 3,
+      },
+      {
+        id: 2,
+        name: "Pomme",
+        price: 1500,
+        stock: 2,
+      },
+      {
+        id: 3,
+        name: "Orange",
+        price: 1500,
+        stock: 1,
+      },
+      {
+        id: 4,
+        name: "Raisin",
+        price: 2000,
+        stock: 4,
+      },
+    ];
+
+    let cartItems = [];
+
+    $(document).ready(function () {
+
+      // Fonction jquery permettant d'afficher les produits disponibles 
+      products.forEach((product) => {
+        let elem = $(
+          `<li data-id="${product.id}">
+            <div class="product-item">
+              <div class="completed" id="title">${product.name}</div>
+              <button id="add-to-cart">Ajouter au panier</button>
+            </div>
+          </li>`
+        );
+        $("#product-list").append(elem);
+      });
+
+
+      // Evenement permettant d'ajouter un element au panier
+      $(".product-item").on("click", "#add-to-cart", function (e) {
+        const productId = $(this).closest("li").data("id");
+        const product = products.find((p) => p.id === productId);
+        let searchItem = cartItems.find((p) => p.id === productId);
+        if (searchItem != undefined) {
+          if (searchItem.quantity < product.stock) {
+            searchItem.quantity++;
+          } else {
+            alert(
+              `Vous ne pouvez pas ajouter plus de ${product.stock} ${product.name} dans votre panier`
+            );
+            return;
+          }
+        } else {
+          const cartItem = {
+            id: product.id,
+            name: product.name,
+            price: product.price,
+            quantity: 1,
+          };
+          cartItems = [...cartItems, cartItem];
+        }
+        openCart();
+      });
+
+      // Evenement permettant d'ouvrir le panier en utiliser la fonction
+      $("#show-cart").on("click", function (event) {
+        openCart();
+      });
+
+      // Evenement permettant de fermer le panier
+      $("#close-cart").on("click", function (event) {
+        $("#cart-container").animate({
+          width: "0px",
+        });
+      });
+
+      // Fonction permettant d'afficher le élements dans du panier
+      function populateCartItems() {
+        $("#cart-list").empty();
+        if (cartItems.length > 0) {
+          cartItems.forEach((cartItem) => {
+            let elem = $(
+              `<li data-id="${cartItem.id}">
+            <div class="cart-item">
+              <div id="title">${cartItem.quantity}x ${cartItem.name}</div>
+              <button id="delete-from-cart">Supprimer</button>
+            </div>
+          </li>`
+            );
+            $("#cart-list").append(elem);
+          });
+        } else {
+          $("#cart-list").html("Le panier est vide");
+        }
+        calculateTotalPrice();
+      }
+
+      // Fonction permettant d'ouvrir le panier
+      function openCart() {
+        // La vérification sur de la longueur du container est pour minimiser le délais de mise à jour
+        // étant donné que la fonction populateCartItem s'exécute à la fin de l'animation
+        const cartContainerWidth = $("#cart-container").width();
+        if (cartContainerWidth > 0) {
+          populateCartItems();
+          return;
+        }
+        $("#cart-container").animate(
+          {
+            width: "300px",
+          },
+          populateCartItems
+        );
+      }
+
+      // Evenement permetant de pouvoir supprimer un élement du panier
+      $("#cart-list").on("click", "#delete-from-cart", function () {
+        let cartItemId = $(this).closest("li").data("id");
+        let searchItem = cartItems.find((p) => p.id === cartItemId);
+        if (searchItem != undefined) {
+          if (searchItem.quantity != 1) {
+            searchItem.quantity--;
+          } else {
+            cartItems = cartItems.filter(
+              (cartItem) => cartItem.id != cartItemId
+            );
+            $(this).closest("li").remove();
+          }
+        }
+        populateCartItems();
+
+        console.log(cartItems);
+      });
+
+      // Fonction permettant de calculer la somme des éléments du panier
+      function calculateTotalPrice() {
+        var sum = cartItems.map((item) => item.price * item.quantity).reduce((x,y)=>x + y,0);
+        if(sum > 0) {
+        $("#cart-total").html(`Total: ${sum}`);
+        } else {
+        $("#cart-total").html(``);
+        }
+        console.log(sum);
+      }
+    });
+  </script>
+  <body>
+    <ul id="product-list"></ul>
+    <br />
+    <button id="show-cart">Afficher le panier</button>
+    <div id="cart-container">
+      <button id="close-cart">Fermer le panier</button>
+      <ul id="cart-list"></ul>
+      <br />
+      <div id="cart-total"></div>
+    </div>
+  </body>
+</html>
